@@ -1,10 +1,23 @@
 import tkinter as tk
 from tkinter import simpledialog
 import openpyxl
-from openpyxl.utils import get_column_letter
+from openpyxl.chart import BarChart, Reference
 from openpyxl.styles import Alignment
 from datetime import datetime
 import subprocess
+
+def create_chart(sheet):
+    chart = BarChart()
+    data = Reference(sheet, min_col=2, min_row=1, max_col=sheet.max_column, max_row=sheet.max_row)
+    categories = Reference(sheet, min_col=1, min_row=2, max_row=sheet.max_row)
+    chart.add_data(data, titles_from_data=True)
+    chart.set_categories(categories)
+    chart.title = "Financial Data Chart"
+    chart.style = 13
+    chart.x_axis.title = 'Categories'
+    chart.y_axis.title = 'Values'
+
+    return chart
 
 def on_submit():
     # Get user input for 10 financial categories
@@ -42,6 +55,11 @@ def on_submit():
     # Save financial data in the labeled column
     for i, category in enumerate(categories, start=2):
         sheet.cell(row=i, column=next_column).value = financial_data.get(category, 0)
+
+    # Create or update the chart
+    chart = create_chart(sheet)
+    chart_cell = sheet.cell(row=sheet.max_row + 2, column=1)
+    sheet.add_chart(chart, chart_cell)
 
     workbook.save(file_path)
 
